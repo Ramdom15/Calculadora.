@@ -1,0 +1,95 @@
+const display = document.getElementById("display");
+const buttons = document.querySelectorAll(".btn");
+
+let firstOperand = null;
+let operator = null;
+let waitingForSecondOperand = false;
+
+function clearDisplay() {
+  display.textContent = "0";
+  firstOperand = null;
+  operator = null;
+  waitingForSecondOperand = false;
+}
+
+function inputDigit(digit) {
+  if (waitingForSecondOperand) {
+    display.textContent = digit;
+    waitingForSecondOperand = false;
+  } else {
+    display.textContent =
+      display.textContent === "0" ? digit : display.textContent + digit;
+  }
+}
+
+function inputDecimal() {
+  if (!display.textContent.includes(".")) {
+    display.textContent += ".";
+  }
+}
+
+function handleOperator(nextOperator) {
+  const currentValue = parseFloat(display.textContent);
+
+  if (operator && waitingForSecondOperand) {
+    operator = nextOperator;
+    return;
+  }
+
+  if (firstOperand === null) {
+    firstOperand = currentValue;
+  } else if (operator) {
+    const result = performCalculation(operator, firstOperand, currentValue);
+    display.textContent = String(result);
+    firstOperand = result;
+  }
+
+  waitingForSecondOperand = true;
+  operator = nextOperator;
+}
+
+function performCalculation(operator, first, second) {
+  switch (operator) {
+    case "add":
+      return first + second;
+    case "subtract":
+      return first - second;
+    case "multiply":
+      return first * second;
+    case "divide":
+      return second !== 0 ? first / second : "Error";
+    default:
+      return second;
+  }
+}
+
+function handlePlusMinus() {
+  const currentValue = parseFloat(display.textContent);
+  display.textContent = currentValue === 0 ? "0" : String(currentValue * -1);
+}
+
+function handlePercent() {
+  const currentValue = parseFloat(display.textContent);
+  display.textContent = String(currentValue / 100);
+}
+
+buttons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const action = button.dataset.action;
+    const number = button.dataset.number;
+
+    if (number !== undefined) {
+      inputDigit(number);
+    } else if (action === "clear") {
+      clearDisplay();
+    } else if (action === "plus-minus") {
+      handlePlusMinus();
+    } else if (action === "percent") {
+      handlePercent();
+    } else if (action === "equals") {
+      handleOperator(null);
+    } else {
+      handleOperator(action);
+    }
+  });
+});
